@@ -1,1 +1,1 @@
-# -internship-effective-mobile
+# internship-effective-mobile

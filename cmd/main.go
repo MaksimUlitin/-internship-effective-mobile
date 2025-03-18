@@ -23,23 +23,18 @@ import (
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 func main() {
-	// Load configuration
 	config.LoadConfigEnv()
 	logger.Info("environment variables loaded")
 
-	// Connect to database
 	db := database.DbConnect()
 	logger.Info("database connect success")
 
-	// Run migrations
 	database.Migrate(db)
 	logger.Info("database migrate success")
 
-	// Start mock server
 	go mockServer()
 	logger.Info("mock server start success")
 
-	// Start main server
 	log.Fatal(routes.Router().Run(":" + config.AppConfig.Server.Port))
 }
 

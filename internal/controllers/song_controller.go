@@ -66,7 +66,6 @@ func AddSongInfo(c *gin.Context) {
 		return
 	}
 
-	// Find the song
 	var song models.Song
 	if err := db.Where("artist_id = ? AND title = ?", artist.ID, songTitle).First(&song).Error; err != nil {
 		logger.Info("song not found", slog.Any("params", map[string]string{"group": groupName, "song": songTitle}))
@@ -75,14 +74,12 @@ func AddSongInfo(c *gin.Context) {
 			return
 		}
 
-		// Parse the release date
 		releaseDate, err := time.Parse("02.01.2006", songDetail.ReleaseDate)
 		if err != nil {
 			logger.Error("failed to parse release date", slog.Any("error", err))
 			releaseDate = time.Now()
 		}
 
-		// Create a new song
 		newSong := models.Song{
 			ArtistID:    artist.ID,
 			Title:       songTitle,
