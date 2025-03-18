@@ -2,12 +2,16 @@ package database
 
 import (
 	"effectiveMobileTask/internal/models"
+	"effectiveMobileTask/lib/logger"
 	"gorm.io/gorm"
-	"log"
 )
 
-func Migrate(db *gorm.DB) {
-	if err := db.AutoMigrate(&models.Artist{}, &models.Song{}); err != nil {
-		log.Fatal("migrate failed: ", err)
+func Migrate(db *gorm.DB) error {
+	if err := db.AutoMigrate(&models.Group{}, &models.Song{}); err != nil {
+		logger.Error("Database migration failed", "error", err)
+		return err
 	}
+	logger.Info("Database migration completed successfully")
+
+	return nil
 }

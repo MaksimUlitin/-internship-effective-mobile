@@ -12,11 +12,13 @@ definitions:
     type: object
   models.Song:
     properties:
-      artist_id:
-        type: integer
       created_at:
         type: string
       deleted_at:
+        type: string
+      group_id:
+        type: integer
+      group_name:
         type: string
       id:
         type: integer
@@ -33,15 +35,21 @@ definitions:
     type: object
   models.SongDetail:
     properties:
+      group_name:
+        type: string
       link:
         type: string
       release_date:
+        type: string
+      song_name:
         type: string
       text:
         type: string
     type: object
   models.SongUpdate:
     properties:
+      group_name:
+        type: string
       link:
         type: string
       release_date:
@@ -80,7 +88,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Song details successfully retrieved
+          description: Title details successfully retrieved
           schema:
             $ref: '#/definitions/models.SongDetail'
         "400":
@@ -90,7 +98,7 @@ paths:
               type: string
             type: object
         "404":
-          description: Song not found
+          description: Title not found
           schema:
             additionalProperties:
               type: string
@@ -114,7 +122,7 @@ paths:
         in: query
         name: group
         type: string
-      - description: Filter by Song Title
+      - description: Filter by Title
         in: query
         name: song
         type: string
@@ -176,7 +184,7 @@ paths:
       - application/json
       description: Delete a song by its ID
       parameters:
-      - description: Song ID
+      - description: Title ID
         in: path
         name: id
         required: true
@@ -185,7 +193,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Song deleted successfully
+          description: Title deleted successfully
           schema:
             additionalProperties:
               type: string
@@ -197,7 +205,7 @@ paths:
               type: string
             type: object
         "404":
-          description: Song not found
+          description: Title not found
           schema:
             additionalProperties:
               type: string
@@ -216,12 +224,12 @@ paths:
       - application/json
       description: Update song information by ID (supports partial updates)
       parameters:
-      - description: Song ID
+      - description: Title ID
         in: path
         name: id
         required: true
         type: integer
-      - description: Song Update Information (supports partial updates)
+      - description: Title Update Information (supports partial updates)
         in: body
         name: song
         required: true
@@ -231,7 +239,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Song updated successfully
+          description: Title updated successfully
           schema:
             additionalProperties:
               type: string
@@ -243,7 +251,7 @@ paths:
               type: string
             type: object
         "404":
-          description: Song not found
+          description: Title not found
           schema:
             additionalProperties:
               type: string
@@ -263,7 +271,7 @@ paths:
       - application/json
       description: Retrieve song text for a specific song ID with pagination support
       parameters:
-      - description: Song ID
+      - description: Title ID
         in: path
         name: id
         required: true
@@ -282,7 +290,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Song text retrieved successfully
+          description: Title text retrieved successfully
           schema:
             additionalProperties: true
             type: object
@@ -293,7 +301,7 @@ paths:
               type: string
             type: object
         "404":
-          description: Song or page not found
+          description: Title or page not found
           schema:
             additionalProperties:
               type: string

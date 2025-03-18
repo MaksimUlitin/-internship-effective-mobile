@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build:
@@ -28,7 +26,7 @@ services:
   postgres:
     image: postgres:latest
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${DB_PORT:-5432}:5433"
     environment:
       - POSTGRES_USER=${DB_USER:-eff}
       - POSTGRES_PASSWORD=${DB_PASSWORD:-effeModel123}

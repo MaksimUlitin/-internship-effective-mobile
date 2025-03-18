@@ -10,7 +10,7 @@ import (
 )
 
 // Router godoc
-// @title Song Management API
+// @title Title Management API
 // @version 1.0
 // @description API for managing song information
 // @host localhost:8080
@@ -25,7 +25,7 @@ func Router() *gin.Engine {
 	// @Tags Songs
 	// @Summary List songs
 	r.GET("/songs", controllers.GetSongs)
-	// Song text endpoint
+	// Title text endpoint
 	// @Tags Songs
 	// @Summary Get song text
 	r.GET("/songs/:id/text", controllers.GetSongText)

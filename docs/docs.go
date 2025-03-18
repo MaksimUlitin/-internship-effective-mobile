@@ -49,7 +49,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Song details successfully retrieved",
+                        "description": "Title details successfully retrieved",
                         "schema": {
                             "$ref": "#/definitions/models.SongDetail"
                         }
@@ -64,7 +64,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Song not found",
+                        "description": "Title not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -106,7 +106,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Filter by Song Title",
+                        "description": "Filter by Title",
                         "name": "song",
                         "in": "query"
                     },
@@ -199,7 +199,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Song ID",
+                        "description": "Title ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -207,7 +207,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Song deleted successfully",
+                        "description": "Title deleted successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -225,7 +225,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Song not found",
+                        "description": "Title not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -259,13 +259,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Song ID",
+                        "description": "Title ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Song Update Information (supports partial updates)",
+                        "description": "Title Update Information (supports partial updates)",
                         "name": "song",
                         "in": "body",
                         "required": true,
@@ -276,7 +276,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Song updated successfully",
+                        "description": "Title updated successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -294,7 +294,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Song not found",
+                        "description": "Title not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -330,7 +330,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Song ID",
+                        "description": "Title ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -352,7 +352,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Song text retrieved successfully",
+                        "description": "Title text retrieved successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -368,7 +368,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Song or page not found",
+                        "description": "Title or page not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -407,13 +407,16 @@ const docTemplate = `{
         "models.Song": {
             "type": "object",
             "properties": {
-                "artist_id": {
-                    "type": "integer"
-                },
                 "created_at": {
                     "type": "string"
                 },
                 "deleted_at": {
+                    "type": "string"
+                },
+                "group_id": {
+                    "type": "integer"
+                },
+                "group_name": {
                     "type": "string"
                 },
                 "id": {
@@ -439,10 +442,16 @@ const docTemplate = `{
         "models.SongDetail": {
             "type": "object",
             "properties": {
+                "group_name": {
+                    "type": "string"
+                },
                 "link": {
                     "type": "string"
                 },
                 "release_date": {
+                    "type": "string"
+                },
+                "song_name": {
                     "type": "string"
                 },
                 "text": {
@@ -453,6 +462,9 @@ const docTemplate = `{
         "models.SongUpdate": {
             "type": "object",
             "properties": {
+                "group_name": {
+                    "type": "string"
+                },
                 "link": {
                     "type": "string"
                 },

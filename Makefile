@@ -6,7 +6,7 @@ run:
 	go run cmd/main.go
 
 swag-generate:
-	cd cmd && swag init -g ../cmd/main.go -d ../config,../internal/models,../internal/controllers,../internal/storage/database,../internal/storage/repository -o ../docs
+	cd cmd && swag init -g ../cmd/main.go -d ../config,../internal/models,../internal/controllers,../internal/storage/database -o ../docs
 
 build:
 	go build -o music-library-app ./cmd/main.go

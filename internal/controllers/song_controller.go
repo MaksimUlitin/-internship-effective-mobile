@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"io"
 	"log/slog"
 	"net/http"
@@ -29,7 +30,7 @@ type SongEnriched struct {
 
 type songRequest struct {
 	Group string `json:"group" example:"Muse"` // Пример значения
-	Title string `json:"song" example:"Supermassive Black Hole"`
+	Song  string `json:"song" example:"Supermassive Black Hole"`
 }
 
 // AddSongInfo godoc
@@ -39,9 +40,9 @@ type songRequest struct {
 // @Accept json
 // @Produce json
 // @Param request body songRequest true "Request Body"
-// @Success 200 {object} models.SongDetail "Song details successfully retrieved"
+// @Success 200 {object} models.SongDetail "Title details successfully retrieved"
 // @Failure 400 {object} map[string]string "Bad request - missing or invalid parameters"
-// @Failure 404 {object} map[string]string "Song not found"
+// @Failure 404 {object} map[string]string "Title not found"
 // @Failure 500 {object} map[string]string "Internal server error - database or API error"
 // @Router /info [post]
 func AddSongInfo(c *gin.Context) {
@@ -54,20 +55,19 @@ func AddSongInfo(c *gin.Context) {
 	}
 
 	groupName := requestBody.Group
-	songTitle := requestBody.Title
+	songTitle := requestBody.Song
 
 	db := database.DbConnect()
 
-	// Find or create the artist
-	var artist models.Artist
-	if err := db.Where("name = ?", groupName).FirstOrCreate(&artist, models.Artist{Name: groupName}).Error; err != nil {
+	var Group models.Group
+	if err := db.Where("name = ?", groupName).FirstOrCreate(&Group, models.Group{Name: groupName}).Error; err != nil {
 		logger.Error("failed to find or create artist", slog.Any("error", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal server errors"})
 		return
 	}
 
 	var song models.Song
-	if err := db.Where("artist_id = ? AND title = ?", artist.ID, songTitle).First(&song).Error; err != nil {
+	if err := db.Where("group_id = ? AND song = ?", Group.ID, songTitle).First(&song).Error; err != nil {
 		logger.Info("song not found", slog.Any("params", map[string]string{"group": groupName, "song": songTitle}))
 		songDetail, boolReturn := GetSongDetailAPI(groupName, songTitle, c)
 		if boolReturn {
@@ -81,7 +81,7 @@ func AddSongInfo(c *gin.Context) {
 		}
 
 		newSong := models.Song{
-			ArtistID:    artist.ID,
+			GroupId:     Group.ID,
 			Title:       songTitle,
 			ReleaseDate: releaseDate,
 			Text:        songDetail.Text,
@@ -97,10 +97,11 @@ func AddSongInfo(c *gin.Context) {
 		song = newSong
 	}
 
-	// Format the release date
 	releaseDateStr := song.ReleaseDate.Format("02.01.2006")
 
 	songDetail := models.SongDetail{
+		GroupName:   groupName,
+		SongName:    songTitle,
 		ReleaseDate: releaseDateStr,
 		Text:        song.Text,
 		Link:        song.Link,
@@ -215,7 +216,7 @@ func songEnrichFromJSON(songDetail *models.SongDetail, group, song string) {
 // @Accept json
 // @Produce json
 // @Param group query string false "Filter by Group Name"
-// @Param song query string false "Filter by Song Title"
+// @Param song query string false "Filter by Title"
 // @Param releaseDate query string false "Filter by Release Date (format: DD.MM.YYYY)"
 // @Param text query string false "Filter by Text"
 // @Param link query string false "Filter by Link"
@@ -248,18 +249,20 @@ func GetSongs(c *gin.Context) {
 		limitNumber = 10
 	}
 
-	query := db.Model(&models.Song{}).Joins("JOIN artists ON songs.artist_id = artists.id")
+	query := db.Model(&models.Song{}).
+		Select("songs.*, groups.name AS group_name").
+		Joins("JOIN groups ON songs.group_id = groups.id")
 
+	// Фильтры
 	if group != "" {
-		query = query.Where("artists.name ILIKE ?", "%"+group+"%")
+		query = query.Where("groups.name ILIKE ?", "%"+group+"%")
 	}
 
 	if song != "" {
-		query = query.Where("songs.title ILIKE ?", "%"+song+"%")
+		query = query.Where("songs.song ILIKE ?", "%"+song+"%")
 	}
 
 	if releaseDate != "" {
-		// Parse the filter date
 		date, err := time.Parse("02.01.2006", releaseDate)
 		if err == nil {
 			query = query.Where("songs.release_date = ?", date)
@@ -279,7 +282,13 @@ func GetSongs(c *gin.Context) {
 
 	if err := query.Find(&songs).Error; err != nil {
 		logger.Error("failed to query songs", slog.Any("error", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "failed to query songs"})
+		return
+	}
+
+	// Если песни не найдены
+	if len(songs) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "no songs found matching criteria"})
 		return
 	}
 
@@ -293,12 +302,12 @@ func GetSongs(c *gin.Context) {
 // @Tags Songs
 // @Accept json
 // @Produce json
-// @Param id path int true "Song ID"
+// @Param id path int true "Title ID"
 // @Param page query int false "Page number for text pagination" default(1)
 // @Param limit query int false "Number of text lines per page" default(10)
-// @Success 200 {object} map[string]interface{} "Song text retrieved successfully"
+// @Success 200 {object} map[string]interface{} "Title text retrieved successfully"
 // @Failure 400 {object} map[string]string "Bad request - invalid ID format"
-// @Failure 404 {object} map[string]string "Song or page not found"
+// @Failure 404 {object} map[string]string "Title or page not found"
 // @Failure 500 {object} map[string]string "Internal server error - database error"
 // @Router /songs/{id}/text [get]
 func GetSongText(c *gin.Context) {
@@ -370,11 +379,11 @@ func GetSongText(c *gin.Context) {
 // @Tags Songs
 // @Accept json
 // @Produce json
-// @Param id path int true "Song ID"
-// @Param song body models.SongUpdate true "Song Update Information (supports partial updates)"
-// @Success 200 {object} map[string]string "Song updated successfully"
+// @Param id path int true "Title ID"
+// @Param song body models.SongUpdate true "Title Update Information (supports partial updates)"
+// @Success 200 {object} map[string]string "Title updated successfully"
 // @Failure 400 {object} map[string]string "Invalid song data or ID format"
-// @Failure 404 {object} map[string]string "Song not found"
+// @Failure 404 {object} map[string]string "Title not found"
 // @Failure 500 {object} map[string]string "Internal server error - database error"
 // @Router /songs/{id} [patch]
 func UpdateSong(c *gin.Context) {
@@ -400,31 +409,57 @@ func UpdateSong(c *gin.Context) {
 		return
 	}
 
-	if updateData.Title != nil {
-		song.Title = *updateData.Title
+	// Карта для хранения обновлений
+	updates := make(map[string]interface{})
+
+	if updateData.GroupName != nil {
+		updates["group_name"] = *updateData.GroupName
 	}
+
+	if updateData.Song != nil {
+		updates["title"] = *updateData.Song
+	}
+
 	if updateData.ReleaseDate != nil {
-		song.ReleaseDate = *updateData.ReleaseDate
-		logger.Error("invalid release date format", slog.Any("error", err))
-		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid release date format"})
-		return
-
+		// (день.месяц.год)
+		date, err := time.Parse("02.01.2006", *updateData.ReleaseDate)
+		if err != nil {
+			logger.Error("invalid release date format", slog.Any("error", err))
+			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid release date format, expected format: DD.MM.YYYY"})
+			return
+		}
+		updates["release_date"] = date
 	}
+
 	if updateData.Text != nil {
-		song.Text = *updateData.Text
-	}
-	if updateData.Link != nil {
-		song.Link = *updateData.Link
+		updates["text"] = *updateData.Text
 	}
 
-	if err := db.Save(&song).Error; err != nil {
+	if updateData.Link != nil {
+		updates["link"] = *updateData.Link
+	}
+
+	if len(updates) == 0 {
+		c.JSON(http.StatusOK, gin.H{"message": "no updates provided"})
+		return
+	}
+
+	if err := db.Model(&song).Updates(updates).Error; err != nil {
 		logger.Error("failed to update song", slog.Any("id", id), slog.Any("error", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal server error"})
 		return
 	}
 
-	logger.Info("song updated successfully", slog.Any("id", id))
-	c.JSON(http.StatusOK, gin.H{"message": "song updated successfully"})
+	updatedFields := make([]string, 0, len(updates))
+	for field := range updates {
+		updatedFields = append(updatedFields, field)
+	}
+
+	logger.Info("song updated successfully", slog.Any("id", id), slog.Any("updated_fields", updatedFields))
+	c.JSON(http.StatusOK, gin.H{
+		"message":        "song updated successfully",
+		"updated_fields": updatedFields,
+	})
 }
 
 // DeleteSong godoc
@@ -433,10 +468,10 @@ func UpdateSong(c *gin.Context) {
 // @Tags Songs
 // @Accept json
 // @Produce json
-// @Param id path int true "Song ID"
-// @Success 200 {object} map[string]string "Song deleted successfully"
+// @Param id path int true "Title ID"
+// @Success 200 {object} map[string]string "Title deleted successfully"
 // @Failure 400 {object} map[string]string "Invalid song ID format"
-// @Failure 404 {object} map[string]string "Song not found"
+// @Failure 404 {object} map[string]string "Title not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /songs/{id} [delete]
 func DeleteSong(c *gin.Context) {
@@ -448,7 +483,19 @@ func DeleteSong(c *gin.Context) {
 	}
 
 	db := database.DbConnect()
-	if err := db.Delete(&models.Song{}, id).Error; err != nil {
+	var song models.Song
+	if err := db.First(&song, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			logger.Info("song already deleted or does not exist", slog.Any("id", id))
+			c.JSON(http.StatusNotFound, gin.H{"message": "song already deleted or does not exist"})
+			return
+		}
+		logger.Error("failed to fetch song", slog.Any("id", id), slog.Any("error", err))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal server error"})
+		return
+	}
+
+	if err := db.Delete(&song).Error; err != nil {
 		logger.Error("failed to delete song", slog.Any("id", id), slog.Any("error", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal server error"})
 		return
