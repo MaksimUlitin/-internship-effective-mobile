@@ -413,9 +413,17 @@ func UpdateSong(c *gin.Context) {
 	updates := make(map[string]interface{})
 
 	if updateData.GroupName != nil {
-		updates["group_name"] = *updateData.GroupName
+		var group models.Group
+		if err := db.Where("name = ?", *updateData.GroupName).First(&group).Error; err != nil {
+			group = models.Group{Name: *updateData.GroupName}
+			if err := db.Create(&group).Error; err != nil {
+				logger.Error("failed to create group", slog.Any("name", *updateData.GroupName))
+				c.JSON(http.StatusInternalServerError, gin.H{"message": "failed to create group"})
+				return
+			}
+		}
+		updates["group_id"] = group.ID
 	}
-
 	if updateData.Song != nil {
 		updates["title"] = *updateData.Song
 	}
