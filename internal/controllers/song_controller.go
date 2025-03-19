@@ -409,23 +409,33 @@ func UpdateSong(c *gin.Context) {
 		return
 	}
 
-	// Карта для хранения обновлений
+	// Карта для хранения обновлений для таблицы songs
 	updates := make(map[string]interface{})
+	updatedFields := make([]string, 0)
 
+	// Если нужно обновить название группы
 	if updateData.GroupName != nil {
+		// Найдем группу по ID из песни
 		var group models.Group
-		if err := db.Where("name = ?", *updateData.GroupName).First(&group).Error; err != nil {
-			group = models.Group{Name: *updateData.GroupName}
-			if err := db.Create(&group).Error; err != nil {
-				logger.Error("failed to create group", slog.Any("name", *updateData.GroupName))
-				c.JSON(http.StatusInternalServerError, gin.H{"message": "failed to create group"})
-				return
-			}
+		if err := db.First(&group, song.GroupId).Error; err != nil {
+			logger.Error("group not found", slog.Any("group_id", song.GroupId))
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "group not found"})
+			return
 		}
-		updates["group_id"] = group.ID
+
+		// Обновляем название группы
+		if err := db.Model(&group).Update("name", *updateData.GroupName).Error; err != nil {
+			logger.Error("failed to update group name", slog.Any("group_id", song.GroupId))
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "failed to update group name"})
+			return
+		}
+
+		updatedFields = append(updatedFields, "group_name")
 	}
+
 	if updateData.Song != nil {
 		updates["title"] = *updateData.Song
+		updatedFields = append(updatedFields, "title")
 	}
 
 	if updateData.ReleaseDate != nil {
@@ -437,33 +447,35 @@ func UpdateSong(c *gin.Context) {
 			return
 		}
 		updates["release_date"] = date
+		updatedFields = append(updatedFields, "release_date")
 	}
 
 	if updateData.Text != nil {
 		updates["text"] = *updateData.Text
+		updatedFields = append(updatedFields, "text")
 	}
 
 	if updateData.Link != nil {
 		updates["link"] = *updateData.Link
+		updatedFields = append(updatedFields, "link")
 	}
 
-	if len(updates) == 0 {
+	// Обновляем поля в таблице songs, если есть что обновлять
+	if len(updates) > 0 {
+		if err := db.Model(&song).Updates(updates).Error; err != nil {
+			logger.Error("failed to update song", slog.Any("id", id), slog.Any("error", err))
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "internal server error"})
+			return
+		}
+	}
+
+	// Если вообще ничего не обновлялось
+	if len(updatedFields) == 0 {
 		c.JSON(http.StatusOK, gin.H{"message": "no updates provided"})
 		return
 	}
 
-	if err := db.Model(&song).Updates(updates).Error; err != nil {
-		logger.Error("failed to update song", slog.Any("id", id), slog.Any("error", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal server error"})
-		return
-	}
-
-	updatedFields := make([]string, 0, len(updates))
-	for field := range updates {
-		updatedFields = append(updatedFields, field)
-	}
-
-	logger.Info("song updated successfully", slog.Any("id", id), slog.Any("updated_fields", updatedFields))
+	logger.Info("song and/or group updated successfully", slog.Any("id", id), slog.Any("updated_fields", updatedFields))
 	c.JSON(http.StatusOK, gin.H{
 		"message":        "song updated successfully",
 		"updated_fields": updatedFields,
