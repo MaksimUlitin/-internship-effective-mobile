@@ -34,15 +34,15 @@ type songRequest struct {
 }
 
 // AddSongInfo godoc
-// @Summary Get song information
-// @Description Retrieve song information by group and title
+// @Summary Add song information
+// @Description Add new song information from group and title
 // @Tags Songs
 // @Accept json
 // @Produce json
 // @Param request body songRequest true "Request Body"
-// @Success 200 {object} models.SongDetail "Title details successfully retrieved"
+// @Success 200 {object} models.SongDetail "Song details successfully added"
 // @Failure 400 {object} map[string]string "Bad request - missing or invalid parameters"
-// @Failure 404 {object} map[string]string "Title not found"
+// @Failure 404 {object} map[string]string "Song not found"
 // @Failure 500 {object} map[string]string "Internal server error - database or API error"
 // @Router /info [post]
 func AddSongInfo(c *gin.Context) {
@@ -216,8 +216,8 @@ func songEnrichFromJSON(songDetail *models.SongDetail, group, song string) {
 // @Accept json
 // @Produce json
 // @Param group query string false "Filter by Group Name"
-// @Param song query string false "Filter by Title"
-// @Param releaseDate query string false "Filter by Release Date (format: DD.MM.YYYY)"
+// @Param song query string false "Filter by Song Title"
+// @Param release_date query string false "Filter by Release Date (format: DD.MM.YYYY)"
 // @Param text query string false "Filter by Text"
 // @Param link query string false "Filter by Link"
 // @Param page query int false "Page number for pagination" default(1)
@@ -302,12 +302,12 @@ func GetSongs(c *gin.Context) {
 // @Tags Songs
 // @Accept json
 // @Produce json
-// @Param id path int true "Title ID"
+// @Param id path int true "Song ID"
 // @Param page query int false "Page number for text pagination" default(1)
 // @Param limit query int false "Number of text lines per page" default(10)
-// @Success 200 {object} map[string]interface{} "Title text retrieved successfully"
+// @Success 200 {object} map[string]interface{} "Song text retrieved successfully"
 // @Failure 400 {object} map[string]string "Bad request - invalid ID format"
-// @Failure 404 {object} map[string]string "Title or page not found"
+// @Failure 404 {object} map[string]string "Song or page not found"
 // @Failure 500 {object} map[string]string "Internal server error - database error"
 // @Router /songs/{id}/text [get]
 func GetSongText(c *gin.Context) {
@@ -379,11 +379,11 @@ func GetSongText(c *gin.Context) {
 // @Tags Songs
 // @Accept json
 // @Produce json
-// @Param id path int true "Title ID"
-// @Param song body models.SongUpdate true "Title Update Information (supports partial updates)"
-// @Success 200 {object} map[string]string "Title updated successfully"
+// @Param id path int true "Song ID"
+// @Param song body models.SongUpdate true "Song Update Information (supports partial updates)"
+// @Success 200 {object} map[string]string "Song updated successfully"
 // @Failure 400 {object} map[string]string "Invalid song data or ID format"
-// @Failure 404 {object} map[string]string "Title not found"
+// @Failure 404 {object} map[string]string "Song not found"
 // @Failure 500 {object} map[string]string "Internal server error - database error"
 // @Router /songs/{id} [patch]
 func UpdateSong(c *gin.Context) {
@@ -488,10 +488,10 @@ func UpdateSong(c *gin.Context) {
 // @Tags Songs
 // @Accept json
 // @Produce json
-// @Param id path int true "Title ID"
-// @Success 200 {object} map[string]string "Title deleted successfully"
+// @Param id path int true "Song ID"
+// @Success 200 {object} map[string]string "Song deleted successfully"
 // @Failure 400 {object} map[string]string "Invalid song ID format"
-// @Failure 404 {object} map[string]string "Title not found"
+// @Failure 404 {object} map[string]string "Song not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /songs/{id} [delete]
 func DeleteSong(c *gin.Context) {

@@ -12,7 +12,7 @@ import (
 	"net/http"
 )
 
-// @title Music library API
+// @title Music Library API
 // @version 1.0
 // @description API for managing song information
 // @host localhost:8080

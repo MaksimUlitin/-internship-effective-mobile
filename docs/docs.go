@@ -25,7 +25,7 @@ const docTemplate = `{
     "paths": {
         "/info": {
             "post": {
-                "description": "Retrieve song information by group and title",
+                "description": "Add new song information from group and title",
                 "consumes": [
                     "application/json"
                 ],
@@ -35,7 +35,7 @@ const docTemplate = `{
                 "tags": [
                     "Songs"
                 ],
-                "summary": "Get song information",
+                "summary": "Add song information",
                 "parameters": [
                     {
                         "description": "Request Body",
@@ -49,7 +49,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Title details successfully retrieved",
+                        "description": "Song details successfully added",
                         "schema": {
                             "$ref": "#/definitions/models.SongDetail"
                         }
@@ -64,7 +64,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Title not found",
+                        "description": "Song not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -106,14 +106,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Filter by Title",
+                        "description": "Filter by Song Title",
                         "name": "song",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "Filter by Release Date (format: DD.MM.YYYY)",
-                        "name": "releaseDate",
+                        "name": "release_date",
                         "in": "query"
                     },
                     {
@@ -199,7 +199,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Title ID",
+                        "description": "Song ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -207,7 +207,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Title deleted successfully",
+                        "description": "Song deleted successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -225,7 +225,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Title not found",
+                        "description": "Song not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -259,13 +259,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Title ID",
+                        "description": "Song ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Title Update Information (supports partial updates)",
+                        "description": "Song Update Information (supports partial updates)",
                         "name": "song",
                         "in": "body",
                         "required": true,
@@ -276,7 +276,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Title updated successfully",
+                        "description": "Song updated successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -294,7 +294,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Title not found",
+                        "description": "Song not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -330,7 +330,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Title ID",
+                        "description": "Song ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -352,7 +352,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Title text retrieved successfully",
+                        "description": "Song text retrieved successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -368,7 +368,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Title or page not found",
+                        "description": "Song or page not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -488,7 +488,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "Music library API",
+	Title:            "Music Library API",
 	Description:      "API for managing song information",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
